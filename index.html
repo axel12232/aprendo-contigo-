@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aprendo Contigo</title>
+<style>
+  body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-align: center;
+    padding: 20px;
+    transition: background-color 0.5s;
+  }
+  body.niño {
+    background-color: #d0e6ff;
+  }
+  body.niña {
+    background-color: #ffe6f0;
+  }
+  button {
+    margin: 10px 8px;
+    padding: 12px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: #8ecae6;
+    color: white;
+    transition: background-color 0.3s;
+    min-width: 90px;
+  }
+  button:hover {
+    background-color: #219ebc;
+  }
+  input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    width: 80%;
+    max-width: 300px;
+  }
+  #feedback {
+    margin-top: 15px;
+    font-weight: bold;
+    min-height: 1.5em;
+  }
+  .question {
+    margin-bottom: 20px;
+    font-size: 24px;
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <h1>👋 Bienvenido a Aprendo Contigo</h1>
+    <p>¿Cuál es tu nombre?</p>
+    <input type="text" id="nombreInput" placeholder="Escribe tu nombre aquí..." />
+    <p>Selecciona tu género:</p>
+    <button onclick="seleccionarGenero('niño')">Niño ♂️</button>
+    <button onclick="seleccionarGenero('niña')">Niña ♀️</button>
+  </div>
+
+<script>
+  let genero = '';
+  let nombre = '';
+  let vozSeleccionada = null;
+  let areaActual = '';
+  let juegoActual = 0;
+
+  const juegos = {
+    matematicas: [
+      {
+        preguntaTexto: '¿Cuántos conejitos ves?',
+        preguntaVisual: '🐰🐰🐰 ¿Cuántos conejitos ves?',
+        opciones: ['2', '3', '4'],
+        correcta: '3'
+      },
+      {
+        preguntaTexto: '¿Qué número viene después de cinco?',
+        preguntaVisual: '📊 ¿Qué número viene después de 5?',
+        opciones: ['6', '4', '7'],
+        correcta: '6'
+      },
+      {
+        preguntaTexto: '¿Cuánto es dos más uno?',
+        preguntaVisual: '➕ ¿Cuánto es 2 + 1?',
+        opciones: ['3', '4', '2'],
+        correcta: '3'
+      },
+      {
+        preguntaTexto: '¿Qué forma es esta? Un cuadrado, un círculo o un triángulo.',
+        preguntaVisual: '🔷 ¿Qué forma es esta? ⬜ 🔵 🔺',
+        opciones: ['Cuadrado', 'Círculo', 'Triángulo'],
+        correcta: 'Cuadrado'
+      },
+      {
+        preguntaTexto: '¿Cuántos animales hay?',
+        preguntaVisual: '🐶🐱🐰🐶 ¿Cuántos animales hay?',
+        opciones: ['3', '4', '5'],
+        correcta: '4'
+      }
+    ],
+
+    lenguaje: [
+      {
+        preguntaTexto: '¿Cuál es la primera letra de la palabra gato?',
+        preguntaVisual: '🐱 ¿Cuál es la primera letra de la palabra gato?',
+        opciones: ['g', 'a', 'o'],
+        correcta: 'g'
+      },
+      {
+        preguntaTexto: '¿Qué palabra es un saludo?',
+        preguntaVisual: '👋 ¿Cuál es un saludo?',
+        opciones: ['Hola', 'Adiós', 'Casa'],
+        correcta: 'Hola'
+      },
+      {
+        preguntaTexto: '¿Qué animal hace "miau"?',
+        preguntaVisual: '🐱 ¿Qué animal hace "miau"?',
+        opciones: ['Perro', 'Gato', 'Pájaro'],
+        correcta: 'Gato'
+      },
+      {
+        preguntaTexto: '¿Qué letra falta? C _ n',
+        preguntaVisual: 'C _ n',
+        opciones: ['a', 'o', 'u'],
+        correcta: 'a'
+      },
+      {
+        preguntaTexto: '¿Cuál es la última letra de la palabra sol?',
+        preguntaVisual: '☀️ ¿Cuál es la última letra de la palabra sol?',
+        opciones: ['l', 's', 'o'],
+        correcta: 'l'
+      }
+    ],
+
+    habilidadesSociales: [
+      {
+        preguntaTexto: '¿Cómo saludas a un amigo?',
+        preguntaVisual: '¿Cómo saludas a un amigo?',
+        opciones: ['Hola', 'Ignorándolo', 'Gritando'],
+        correcta: 'Hola'
+      },
+      {
+        preguntaTexto: 'Si alguien está triste, ¿qué haces?',
+        preguntaVisual: '¿Qué haces si alguien está triste?',
+        opciones: ['Lo ayudas', 'Te ríes', 'Lo ignoras'],
+        correcta: 'Lo ayudas'
+      },
+      {
+        preguntaTexto: '¿Qué palabra usamos para pedir permiso?',
+        preguntaVisual: '¿Qué palabra usamos para pedir permiso?',
+        opciones: ['Por favor', 'Gracias', 'Adiós'],
+        correcta: 'Por favor'
+      },
+      {
+        preguntaTexto: '¿Qué haces cuando quieres compartir?',
+        preguntaVisual: '¿Qué haces cuando quieres compartir?',
+        opciones: ['Doy mis cosas', 'Las guardo', 'Las tiro'],
+        correcta: 'Doy mis cosas'
+      },
+      {
+        preguntaTexto: '¿Qué es ser amable?',
+        preguntaVisual: '¿Qué es ser amable?',
+        opciones: ['Ser bueno con otros', 'Pelear', 'Gritar'],
+        correcta: 'Ser bueno con otros'
+      }
+    ],
+
+    autonomia: [
+      {
+        preguntaTexto: '¿Qué debes hacer antes de comer?',
+        preguntaVisual: '¿Qué debes hacer antes de comer?',
+        opciones: ['Lavarte las manos', 'Jugar', 'Dormir'],
+        correcta: 'Lavarte las manos'
+      },
+      {
+        preguntaTexto: '¿Dónde debes guardar tus juguetes?',
+        preguntaVisual: '¿Dónde debes guardar tus juguetes?',
+        opciones: ['En su lugar', 'En la calle', 'En la cama'],
+        correcta: 'En su lugar'
+      },
+      {
+        preguntaTexto: '¿Qué haces si tienes sed?',
+        preguntaVisual: '¿Qué haces si tienes sed?',
+        opciones: ['Tomar agua', 'Comer dulces', 'Correr'],
+        correcta: 'Tomar agua'
+      },
+      {
+        preguntaTexto: '¿Qué haces si te ensucias?',
+        preguntaVisual: '¿Qué haces si te ensucias?',
+        opciones: ['Lavarte', 'Ignorar', 'Comer'],
+        correcta: 'Lavarte'
+      },
+      {
+        preguntaTexto: '¿Qué debes hacer para dormir bien?',
+        preguntaVisual: '¿Qué debes hacer para dormir bien?',
+        opciones: ['Acostarte temprano', 'Jugar mucho', 'Comer mucho'],
+        correcta: 'Acostarte temprano'
+      }
+    ],
+
+    creatividad: [
+      {
+        preguntaTexto: '¿Qué color obtienes mezclando rojo y azul?',
+        preguntaVisual: '🎨 ¿Qué color obtienes mezclando rojo y azul?',
+        opciones: ['Morado', 'Verde', 'Naranja'],
+        correcta: 'Morado'
+      },
+      {
+        preguntaTexto: '¿Cuál es la forma con tres lados?',
+        preguntaVisual: '✏️ ¿Cuál es la forma con tres lados?',
+        opciones: ['Triángulo', 'Cuadrado', 'Círculo'],
+        correcta: 'Triángulo'
+      },
+      {
+        preguntaTexto: '¿Qué puedes usar para dibujar?',
+        preguntaVisual: '🖍️ ¿Qué puedes usar para dibujar?',
+        opciones: ['Lápiz', 'Tenis', 'Libro'],
+        correcta: 'Lápiz'
+      },
+      {
+        preguntaTexto: '¿Qué instrumento puedes tocar con tus manos?',
+        preguntaVisual: '🥁 ¿Qué instrumento puedes tocar con tus manos?',
+        opciones: ['Batería', 'Piano', 'Guitarra'],
+        correcta: 'Batería'
+      },
+      {
+        preguntaTexto: '¿Qué se necesita para pintar un cuadro?',
+        preguntaVisual: '🎨 ¿Qué se necesita para pintar un cuadro?',
+        opciones: ['Pincel', 'Zapatos', 'Mesa'],
+        correcta: 'Pincel'
+      }
+    ],
+  };
+
+  function cargarVoces() {
+    return new Promise((resolve) => {
+      let voices = speechSynthesis.getVoices();
+      if (voices.length) {
+        resolve(voices);
+      } else {
+        speechSynthesis.onvoiceschanged = () => {
+          voices = speechSynthesis.getVoices();
+          resolve(voices);
+        };
+      }
+    });
+  }
+
+  async function seleccionarVoz() {
+    const voices = await cargarVoces();
+    if (genero === 'niño') {
+      vozSeleccionada = voices.find(v => /child|male/i.test(v.name)) || voices.find(v => /male/i.test(v.name)) || voices[0];
+    } else {
+      vozSeleccionada = voices.find(v => /child|female/i.test(v.name)) || voices.find(v => /female/i.test(v.name)) || voices[0];
+    }
+  }
+
+  async function seleccionarGenero(gen) {
+    const input = document.getElementById('nombreInput');
+    if (!input.value.trim()) {
+      alert('Por favor escribe tu nombre.');
+      return;
+    }
+    nombre = input.value.trim();
+    genero = gen;
+    document.body.className = gen;
+    await seleccionarVoz();
+    mostrarMenu();
+    hablar(`¡Hola ${nombre}, bienvenido a Aprendo Contigo! Elige un área para comenzar a aprender.`);
+  }
+
+  // Función que limpia emojis y caracteres especiales para que la voz no los lea
+  function limpiarTexto(texto) {
+    return texto.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g, '').trim();
+  }
+
+  function hablar(texto) {
+    const textoLimpio = limpiarTexto(texto);
+    if (!vozSeleccionada) {
+      const msg = new SpeechSynthesisUtterance(textoLimpio);
+      msg.lang = 'es-MX';
+      speechSynthesis.speak(msg);
+      return;
+    }
+    const msg = new SpeechSynthesisUtterance(textoLimpio);
+    msg.lang = 'es-MX';
+    msg.voice = vozSeleccionada;
+    speechSynthesis.speak(msg);
+  }
+
+  function mostrarMenu() {
+    areaActual = '';
+    juegoActual = 0;
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <h2>🏠 Menú Principal</h2>
+      <p>Hola ${nombre}, elige un área para jugar:</p>
+      <button onclick="iniciarArea('matematicas')">🔢 Matemáticas</button>
+      <button onclick="iniciarArea('lenguaje')">✏️ Lenguaje</button>
+      <button onclick="iniciarArea('habilidadesSociales')">👥 Habilidades Sociales</button>
+      <button onclick="iniciarArea('autonomia')">🧼 Autonomía</button>
+      <button onclick="iniciarArea('creatividad')">🎨 Creatividad</button>
+    `;
+  }
+
+  function iniciarArea(area) {
+    if (!juegos[area]) {
+      alert('Área no disponible.');
+      return;
+    }
+    areaActual = area;
+    juegoActual = 0;
+    mostrarJuego();
+  }
+
+  function mostrarJuego() {
+    const juego = juegos[areaActual][juegoActual];
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <h2>${tituloArea(areaActual)}</h2>
+      <div class="question">${juego.preguntaVisual}</div>
+      ${juego.opciones.map(opcion => `<button onclick="verificarRespuesta('${opcion}')">${opcion}</button>`).join('')}
+      <div id="feedback"></div>
+      <br/>
+      <button onclick="mostrarMenu()">🔙 Volver al menú</button>
+    `;
+    // Pasamos solo texto limpio para que la voz no lea emojis
+    hablar(juego.preguntaTexto);
+    document.getElementById('feedback').textContent = '';
+  }
+
+  function tituloArea(area) {
+    switch(area) {
+      case 'matematicas': return '🔢 Matemáticas';
+      case 'lenguaje': return '✏️ Lenguaje';
+      case 'habilidadesSociales': return '👥 Habilidades Sociales';
+      case 'autonomia': return '🧼 Autonomía';
+      case 'creatividad': return '🎨 Creatividad';
+      default: return '';
+    }
+  }
+
+  function verificarRespuesta(opcion) {
+    const juego = juegos[areaActual][juegoActual];
+    const feedback = document.getElementById('feedback');
+    if (opcion === juego.correcta) {
+      feedback.style.color = 'green';
+      feedback.textContent = '¡Muy bien! 🎉';
+      hablar('Muy bien');
+      juegoActual++;
+      if (juegoActual >= juegos[areaActual].length) {
+        setTimeout(() => {
+          mostrarFinArea();
+        }, 1200);
+      } else {
+        setTimeout(mostrarJuego, 1500);
+      }
+    } else {
+      feedback.style.color = 'red';
+      feedback.textContent = 'Inténtalo otra vez.';
+      hablar('Inténtalo otra vez');
+    }
+  }
+
+  function mostrarFinArea() {
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <h2>🎉 ¡Felicidades ${nombre}!</h2>
+      <p>Terminaste todos los juegos de ${tituloArea(areaActual)}.</p>
+      <button onclick="reiniciarArea()">🔄 Repetir ${tituloArea(areaActual)}</button>
+      <button onclick="mostrarMenu()">🏠 Volver al menú principal</button>
+    `;
+    hablar(`¡Felicidades ${nombre}! Terminaste todos los juegos de ${tituloArea(areaActual)}. Puedes repetir los juegos o regresar al menú principal.`);
+  }
+
+  function reiniciarArea() {
+    juegoActual = 0;
+    mostrarJuego();
+  }
+</script>
+</body>
+</html>
